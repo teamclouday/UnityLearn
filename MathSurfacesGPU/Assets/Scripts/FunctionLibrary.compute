@@ -1,0 +1,120 @@
+#pragma kernel FunctionKernel
+
+#define PI 3.14159265358979323846
+
+RWStructuredBuffer<float3> _Positions;
+
+uint _Resolution, _FunctionNew, _FunctionLast;
+float _Step, _Time, _IsTransition, _Progress;
+
+
+
+float3 Wave (float u, float v, float t)
+{
+	float3 p;
+	p.x = u;
+	p.y = sin(PI * (u + v + t));
+	p.z = v;
+	return p;
+}
+
+float3 MultiWave (float u, float v, float t)
+{
+    float3 p;
+    p.x = u;
+    p.y = sin(PI * (u + 0.5 * t));
+    p.y += sin(2.0 * PI * (v + t)) * 0.5;
+    p.y += sin(PI * (u + v + 0.25 * t));
+    p.y *= 1.0 / 2.5;
+    p.z = v;
+    return p;
+}
+
+float3 Ripple (float u, float v, float t)
+{
+    float d = sqrt(u * u + v * v);
+    float3 p;
+    p.x = u;
+    p.y = sin(PI * (4.0 * d - t)) / (1.0 + 10.0 * d);
+    p.z = v;
+    return p;
+}
+
+float3 Sphere (float u, float v, float t)
+{
+    float r = 0.9 + 0.1 * sin(PI * (12.0 * u + 8.0 * v + t));
+    float s = r * cos(0.5 * PI * v);
+    float3 p;
+    p.x = s * sin(PI * u);
+    p.y = r * sin(PI * 0.5 * v);
+    p.z = s * cos(PI * u);
+    return p;
+}
+
+float3 Torus (float u, float v, float t)
+{
+    float r1 = 0.7 + 0.1 * sin(PI * (8.0 * u + 0.5 * t));
+    float r2 = 0.15 + 0.05 * sin(PI * (16.0 * u + 8.0 * v + 3.0 * t));
+    float s = r1 + r2 * cos(PI * v);
+    float3 p;
+    p.x = s * sin(PI * u);
+    p.y = r2 * sin(PI * v);
+    p.z = s * cos(PI * u);
+    return p;
+}
+
+
+
+
+
+
+float3 GetPosition (uint function, float u, float v, float t)
+{
+    float3 p;
+    if(function == 0) p = Wave(u, v, t);
+    else if(function == 1) p = MultiWave(u, v, t);
+    else if(function == 2) p = Ripple(u, v, t);
+    else if(function == 3) p = Sphere(u, v, t);
+    else if(function == 4) p = Torus(u, v, t);
+    return p;
+}
+
+float3 Morph(float3 posStart, float3 posEnd, float3 progress)
+{
+    float3 delta = posEnd - posStart;
+    delta = delta * progress;
+    return posStart + delta;
+}
+
+float2 GetUV(uint3 id)
+{
+    return (id.xy + 0.5) * _Step - 1.0;
+}
+
+void SetPosition(uint3 id, float3 position)
+{
+    if(id.x < _Resolution && id.y < _Resolution)
+    {
+        _Positions[id.x + id.y * _Resolution] = position;
+    }
+}
+
+[numthreads(8, 8, 1)]
+void FunctionKernel(uint3 id : SV_DISPATCHTHREADID)
+{
+    float2 uv = GetUV(id);
+    if(_IsTransition == 0)
+    {
+        // not transitioning
+        SetPosition(id, GetPosition(_FunctionNew, uv.x, uv.y, _Time));
+    }
+    else
+    {
+        // transitioning
+        SetPosition(id, Morph(
+            GetPosition(_FunctionLast, uv.x, uv.y, _Time),
+            GetPosition(_FunctionNew, uv.x, uv.y, _Time),
+            _Progress
+        ));
+    }
+}
