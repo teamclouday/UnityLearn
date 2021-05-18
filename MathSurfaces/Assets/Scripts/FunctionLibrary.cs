@@ -67,4 +67,9 @@ public static class FunctionLibrary
         p.z = s * Cos(PI * u);
         return p;
     }
+
+    public static Vector3 Morph(float u, float v, float t, Function from, Function to, float progress)
+    {
+        return Vector3.LerpUnclamped(from(u, v, t), to(u, v, t), SmoothStep(0.0f, 1.0f, progress));
+    }
 }
