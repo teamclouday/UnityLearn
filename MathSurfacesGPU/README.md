@@ -7,6 +7,7 @@ It visualizes parameterized surfaces using compute shaders.
 
 `Assets` folder contains all data for game  
 `Build` folder contains built game for Windows x86_64 platform  
+`Build_Android` folder contains built game for Android platform  
 
 ------
 

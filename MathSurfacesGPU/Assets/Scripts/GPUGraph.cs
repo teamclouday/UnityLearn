@@ -48,6 +48,14 @@ public class GPUGraph : MonoBehaviour
         isTransitionID = Shader.PropertyToID("_IsTransition"),
         progressID = Shader.PropertyToID("_Progress");
 
+    private void Start()
+    {
+#if UNITY_ANDROID
+        Application.targetFrameRate = -1;
+        QualitySettings.vSyncCount = 0;
+#endif
+    }
+
     private void OnEnable()
     {
         positionsBuffer = new ComputeBuffer(maxResolution * maxResolution, 3 * sizeof(float));
@@ -71,6 +79,7 @@ public class GPUGraph : MonoBehaviour
         
         UpdateFunctionOnGPU();
 
+#if UNITY_STANDALONE
         if (Input.GetKeyDown("escape")) Application.Quit();
         if (Input.GetKeyDown("1"))
         {
@@ -139,6 +148,18 @@ public class GPUGraph : MonoBehaviour
             resolution = Mathf.Max(resolution, minResolution);
             objectCountDisplay.SetText("{0} x {0}", resolution);
         }
+#elif UNITY_ANDROID
+        if(CustomCamera.IsDoubleTap())
+        {
+            lastFunction = function;
+            int functionID = (int)function;
+            functionID++;
+            if (functionID > 4) functionID = 0;
+            function = (FunctionLibrary.FunctionName)functionID;
+            isTransition = true;
+            progress = 0.0f;
+        }
+#endif
 
         duration += Time.unscaledDeltaTime;
         frames++;
