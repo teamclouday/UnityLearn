@@ -1284,6 +1284,7 @@ MonoBehaviour:
   pivotHours: {fileID: 353828604}
   pivotMinutes: {fileID: 1454883105}
   pivotSeconds: {fileID: 1978415235}
+  clock: {fileID: 1440465151}
 --- !u!1 &1454883104
 GameObject:
   m_ObjectHideFlags: 0
