@@ -48,23 +48,13 @@ public class Clock : MonoBehaviour
 #endif
     }
 
-    // reference: https://answers.unity.com/questions/369230/how-to-detect-double-tap-in-android.html
     private bool IsDoubleTap()
     {
         bool result = false;
 
 #if UNITY_ANDROID
-        float MaxTimeWait = 2;
-        float VariancePosition = 2;
-
-        if (Input.touchCount == 1 && Input.GetTouch(0).phase == TouchPhase.Began)
-        {
-            float DeltaTime = Input.GetTouch(0).deltaTime;
-            float DeltaPositionLength = Input.GetTouch(0).deltaPosition.magnitude;
-
-            if (DeltaTime > 0 && DeltaTime < MaxTimeWait && DeltaPositionLength < VariancePosition)
-                result = true;
-        }
+        if (Input.touchCount == 1 && Input.GetTouch(0).phase == TouchPhase.Began && Input.GetTouch(0).tapCount == 2)
+            result = true;
 #endif
         return result;
     }
